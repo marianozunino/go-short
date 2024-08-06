@@ -1,4 +1,4 @@
-package handler
+package handlers
 
 import (
 	"fmt"
@@ -12,22 +12,22 @@ import (
 	"github.com/marianozunino/go-short/internal/view"
 )
 
-type Handler struct {
+type UrlHandler struct {
 	db *store.Queries
 }
 
-func NewHandler(q *store.Queries) Handler {
-	return Handler{q}
+func NewUrlHandler(q *store.Queries) UrlHandler {
+	return UrlHandler{q}
 }
 
-func (Handler) GetHomePage(c echo.Context) error {
+func (UrlHandler) GetHomePage(c echo.Context) error {
 	return view.Form().Render(
 		c.Request().Context(),
 		c.Response().Writer,
 	)
 }
 
-func (h Handler) GetShortenURL(c echo.Context) error {
+func (h UrlHandler) GetShortenURL(c echo.Context) error {
 	code := c.Param("code")
 
 	if code == "" {
@@ -49,7 +49,7 @@ func (h Handler) GetShortenURL(c echo.Context) error {
 	return c.Redirect(http.StatusFound, urlModel.Url)
 }
 
-func (h Handler) PostShortenURL(c echo.Context) error {
+func (h UrlHandler) PostShortenURL(c echo.Context) error {
 	url := c.FormValue("url")
 
 	if url == "" {

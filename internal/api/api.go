@@ -9,7 +9,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/labstack/echo/v4"
-	"github.com/marianozunino/go-short/internal/handler"
+	"github.com/marianozunino/go-short/internal/api/handlers"
+	"github.com/marianozunino/go-short/internal/api/routes"
 	"github.com/marianozunino/go-short/internal/store"
 )
 
@@ -20,13 +21,10 @@ func Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	queries := store.New(db)
-
-	h := handler.NewHandler(queries)
-
-	e.GET("/", h.GetHomePage)
-	e.GET("/:code", h.GetShortenURL)
-	e.POST("/", h.PostShortenURL)
+	h := handlers.NewHandlers(queries)
+	routes.SetupRoutes(e, h)
 
 	e.Logger.Fatal(
 		e.Start(
