@@ -2,8 +2,10 @@ package api
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
+	"github.com/marianozunino/go-short/internal/config"
 	_ "github.com/marianozunino/go-short/internal/config"
 	_ "github.com/mattn/go-sqlite3"
 
@@ -27,5 +29,9 @@ func Run() {
 	e.GET("/:code", h.GetShortenURL)
 	e.POST("/", h.PostShortenURL)
 
-	e.Logger.Fatal(e.Start(":1323"))
+	e.Logger.Fatal(
+		e.Start(
+			fmt.Sprintf(":%s", config.Port.Value()),
+		),
+	)
 }
