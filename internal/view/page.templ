@@ -49,7 +49,7 @@ templ Partial(shortenedURL string) {
 		<p class="text-gray-300 mb-2">Your shortened URL is ready:</p>
 		<a
 			id="shortenedUrl"
-			class="text-blue-400 hover:underline text-lg"
+			class="text-blue-400 hover:underline text-lg block"
 			href={ templ.URL(shortenedURL) }
 		>
 			{ shortenedURL }

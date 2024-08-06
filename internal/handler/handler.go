@@ -3,7 +3,6 @@ package handler
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	hxhttp "github.com/maragudk/gomponents-htmx/http"
@@ -51,7 +50,6 @@ func (h Handler) GetShortenURL(c echo.Context) error {
 }
 
 func (h Handler) PostShortenURL(c echo.Context) error {
-	time.Sleep(1 * time.Second)
 	url := c.FormValue("url")
 
 	if url == "" {
