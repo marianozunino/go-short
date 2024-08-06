@@ -1,0 +1,121 @@
+package view
+
+templ head(title string) {
+	<head>
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+		<script src="https://unpkg.com/htmx.org"></script>
+		<title>{ title }</title>
+		<script type="text/javascript">
+			document.addEventListener("htmx:configRequest", function(evt) {
+				const button = document.getElementById("submit-btn");
+				const spinner = document.getElementById("spinner");
+				const buttonText = document.getElementById("button-text");
+				const partial = document.getElementById("partial");
+
+				// Clear the previous result
+				partial.innerHTML = "";
+				buttonText.classList.add("hidden");
+				spinner.classList.remove("hidden");
+			});
+
+			document.addEventListener("htmx:afterRequest", function(evt) {
+				const button = document.getElementById("submit-btn");
+				const spinner = document.getElementById("spinner");
+				const buttonText = document.getElementById("button-text");
+				buttonText.classList.remove("hidden");
+				spinner.classList.add("hidden");
+			});
+	       </script>
+	</head>
+}
+
+templ Spinner() {
+	<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+		<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+		<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+	</svg>
+}
+
+templ ErrorPartial(errorMessage string) {
+	<div class="bg-red-500 text-white p-4 rounded-md mt-4 text-center">
+		{ errorMessage } 😢
+	</div>
+}
+
+templ Partial(shortenedURL string) {
+	<div class="bg-gray-700 p-4 rounded-md mt-4 text-center">
+		<p class="text-gray-300 mb-2">Your shortened URL is ready:</p>
+		<a
+			id="shortenedUrl"
+			class="text-blue-400 hover:underline text-lg"
+			href={ templ.URL(shortenedURL) }
+		>
+			{ shortenedURL }
+		</a>
+		<button
+			class="mt-2 bg-blue-500 text-white py-1 px-4 rounded-md hover:bg-blue-600 transition"
+			onclick="navigator.clipboard.writeText(document.getElementById('shortenedUrl').innerText)"
+		>
+			Copy to Clipboard
+		</button>
+	</div>
+}
+
+templ Form() {
+	@Page("URL Shortener") {
+		<form
+			hx-boost="true"
+			hx-target="#partial"
+			hx-swap="innerHTML"
+			hx-indicator=".htmx-indicator"
+			hx-disabled-elt="#submit-btn"
+			method="post"
+			action="/"
+		>
+			<div class="flex flex-col space-y-4">
+				<input
+					type="url"
+					name="url"
+					id="urlInput"
+					placeholder="Enter your URL here"
+					class="p-3 border border-gray-600 rounded-md bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+				/>
+				<button
+					id="submit-btn"
+					class="bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition flex items-center justify-center"
+				>
+					<span id="button-text">Shorten URL</span>
+					<span id="spinner" class="hidden">
+						@Spinner()
+					</span>
+				</button>
+			</div>
+		</form>
+		<div id="partial"></div>
+	}
+}
+
+templ Page(title string) {
+	<html>
+		@head(title)
+		<body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen">
+			<div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
+				<h1 class="text-2xl font-bold mb-6 text-center">URL Shortener</h1>
+				{ children... }
+			</div>
+		</body>
+	</html>
+}
+
+templ NotFound(url string) {
+	@Page("404 Not Found") {
+		<div class="flex flex-col items-center">
+			<h2 class="text-3xl font-bold mb-4">Page Not Found</h2>
+			<p class="text-gray-300 mb-4">Sorry, we couldn't find the page you were looking for.</p>
+			<p class="text-gray-400 mb-8">The URL <span class="text-gray-200">{ url }</span> does not exist.</p>
+			<a href="/" class="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition">Go to Homepage</a>
+		</div>
+	}
+}
