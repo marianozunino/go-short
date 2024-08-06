@@ -13,6 +13,11 @@ var Port = ferrite.
 	WithDefault("1323").
 	Required()
 
+var DatabasePath = ferrite.
+	String("DATABASE_PATH", "./db.sqlite").
+	WithDefault("./db.sqlite").
+	Required()
+
 func init() {
 	ferrite.Init()
 }

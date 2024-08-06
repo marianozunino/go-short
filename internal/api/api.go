@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/marianozunino/go-short/internal/config"
-	_ "github.com/marianozunino/go-short/internal/config"
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/labstack/echo/v4"
@@ -17,7 +16,7 @@ import (
 func Run() {
 	e := echo.New()
 
-	db, err := sql.Open("sqlite3", "./db.sqlite")
+	db, err := sql.Open("sqlite3", config.DatabasePath.Value())
 	if err != nil {
 		log.Fatal(err)
 	}
