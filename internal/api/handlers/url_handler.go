@@ -56,7 +56,9 @@ func (h UrlHandler) PostShortenURL(c echo.Context) error {
 		return view.ErrorPartial("URL cannot be empty").Render(c.Request().Context(), c.Response().Writer)
 	}
 
-	if !utils.IsValidURL(url) {
+	result := utils.IsValidURL(url)
+
+	if !result.IsValid {
 		return view.ErrorPartial("Invalid URL provided").Render(c.Request().Context(), c.Response().Writer)
 	}
 
