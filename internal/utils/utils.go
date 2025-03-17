@@ -2,8 +2,9 @@ package utils
 
 import (
 	"crypto"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"net/url"
 )
@@ -24,7 +25,6 @@ func IsValidURL(target string) Result {
 	}
 
 	s, err := http.Get(u.String())
-
 	if err != nil {
 		return Result{IsValid: false, Message: "We couldn't reach the server"}
 	}
@@ -37,14 +37,12 @@ func IsValidURL(target string) Result {
 }
 
 func GenerateShortKey() string {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	const keyLength = 6
-
-	shortKey := make([]byte, keyLength)
-	for i := range shortKey {
-		shortKey[i] = charset[rand.Intn(len(charset))]
+	const length = 6
+	bytes := make([]byte, length/2+1)
+	if _, err := rand.Read(bytes); err != nil {
+		panic(fmt.Sprintf("failed to generate random bytes: %w", err))
 	}
-	return string(shortKey)
+	return hex.EncodeToString(bytes)[:length]
 }
 
 func Md5(s string) string {

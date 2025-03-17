@@ -2,22 +2,25 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	hxhttp "github.com/maragudk/gomponents-htmx/http"
 	"github.com/marianozunino/go-short/internal/config"
 	"github.com/marianozunino/go-short/internal/store"
 	"github.com/marianozunino/go-short/internal/utils"
 	"github.com/marianozunino/go-short/internal/view"
 )
 
+const PushURLHeader = "hx-push-url"
+
 type UrlHandler struct {
-	db *store.Queries
+	db  *store.Queries
+	cfg config.Config
 }
 
-func NewUrlHandler(q *store.Queries) UrlHandler {
-	return UrlHandler{q}
+func NewUrlHandler(q *store.Queries, cfg config.Config) UrlHandler {
+	return UrlHandler{q, cfg}
 }
 
 func (UrlHandler) GetHomePage(c echo.Context) error {
@@ -35,7 +38,6 @@ func (h UrlHandler) GetShortenURL(c echo.Context) error {
 	}
 
 	urlModel, err := h.db.GetUrlByCode(c.Request().Context(), code)
-
 	if err != nil {
 		return view.NotFound(code).Render(c.Request().Context(), c.Response().Writer)
 	}
@@ -62,20 +64,20 @@ func (h UrlHandler) PostShortenURL(c echo.Context) error {
 		return view.ErrorPartial("Invalid URL provided").Render(c.Request().Context(), c.Response().Writer)
 	}
 
-	hxhttp.SetPushURL(c.Response().Writer.Header(), c.Request().URL.RequestURI())
+	c.Response().Writer.Header().Add(PushURLHeader, c.Request().URL.RequestURI())
 
 	urlModel, err := h.db.CreateUrl(c.Request().Context(), store.CreateUrlParams{
 		Url:  url,
 		Code: utils.GenerateShortKey(),
 		Md5:  utils.Md5(url),
 	})
-
 	if err != nil {
+		log.Printf("error creating url: %v", err)
 		return view.ErrorPartial("Something went wrong").Render(c.Request().Context(), c.Response().Writer)
 	}
 
 	return view.Partial(
-		fmt.Sprintf("%s/%s", config.BaseURL.Value(), urlModel.Code),
+		fmt.Sprintf("%s/%s", h.cfg.BaseDomain, urlModel.Code),
 	).Render(
 		c.Request().Context(),
 		c.Response().Writer,

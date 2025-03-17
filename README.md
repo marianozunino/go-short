@@ -1,81 +1,105 @@
-# URL Shortener
+# go-short
 
-This project is a URL shortener built in Go. It uses [templ.guide](https://templ.guide/) for HTML components, [sqlc](https://github.com/kyleconroy/sqlc) for generating type-safe SQL code, and SQLite as the database.
+A modern URL shortener service built with Go, inspired by bit.ly and similar services. Perfect for personal, self-hosted URL shortening needs.
 
 ## Features
 
-- Shorten long URLs
-- Redirect to original URLs using shortened links
-- Simple and clean HTML templates
-- Lightweight and fast with Go and SQLite
+- Shorten long URLs with one click
+- Track click counts for each shortened URL
+- Dark-themed, responsive UI with HTMX for interactivity
+- Validates URL existence before shortening
+- Efficiently stores and retrieves URLs with SQLite
+- Uses MD5 hashing to prevent duplicate short URLs
 
-## Requirements
+## Dependencies
 
-- Go 1.16 or later
-- [sqlc](https://github.com/kyleconroy/sqlc)
-- [migrate](https://github.com/golang-migrate/migrate) for database migrations
+- [Echo](https://echo.labstack.com/) - High performance, minimalist Go web framework
+- [templ](https://github.com/a-h/templ) - Typed templating language for Go
+- [SQLite](https://www.sqlite.org/) - Self-contained, serverless database engine
+- [sqlc](https://sqlc.dev/) - Generate type-safe Go from SQL
+- [HTMX](https://htmx.org/) - HTML extensions for AJAX, WebSockets and more
+- [Viper](https://github.com/spf13/viper) - Complete configuration solution
 
-## Installation
+## Setup
 
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/yourusername/url-shortener.git
-    cd url-shortener
-    ```
+1. Clone the repo:
+   ```
+   git clone https://github.com/marianozunino/go-short.git
+   cd go-short
+   ```
 
-2. Install the dependencies:
-    ```sh
-    go mod download
-    ```
+2. Get dependencies:
+   ```
+   go mod tidy
+   ```
 
-3. Install `sqlc`:
-    ```sh
-    go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
-    ```
+3. Run with task:
+   ```
+   # Setup and run development server
+   task setup
+   task dev
 
-4. Install `migrate`:
-    ```sh
-    go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-    ```
-
-## Usage
-
-### Running Migrations
-
-Create a new migration:
-```sh
-migrate create -dir migrations -ext sql initial
-```
-
-Run the migrations:
-```sh
-migrate -database sqlite3://db.test -path migrations up
-```
-
-### Generating SQL Code with sqlc
-
-To generate Go code from the SQL queries, run:
-```sh
-sqlc generate
-```
-
-### Running the Application
-
-To start the URL shortener application, run:
-```sh
-go run main.go
-```
+   # Or build and then run
+   task build
+   task serve
+   ```
 
 ## Configuration
 
-The application can be configured using environment variables:
+The application uses [Viper](https://github.com/spf13/viper) to manage configuration, supporting both JSON config files and environment variables.
 
-- `DATABASE_URL`: The URL for the SQLite database (default: `sqlite3://db.test`)
+### Environment Variables
 
-## Contributing
+| Environment Variable | Description                     | Default                    |
+|----------------------|---------------------------------|----------------------------|
+| PORT                 | HTTP server port                | 1323                       |
+| DB_PATH              | Path to SQLite database         | "./db.sqlite"              |
+| BASE_DOMAIN          | Base URL for shortened links    | "http://localhost:1323"    |
 
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
+### Configuration File
+
+You can also use a JSON configuration file to set these values.
+
+## Usage
+
+### Web Interface
+
+1. Visit the homepage (default: http://localhost:1323)
+2. Enter a valid URL in the input field
+3. Click "Shorten"
+4. Copy your shortened URL
+
+### API Usage
+
+```bash
+# Shorten a URL (form submission)
+curl -X POST -d "url=https://example.com/very/long/url/that/needs/shortening" http://localhost:1323/
+
+# Access a shortened URL
+curl -L http://localhost:1323/abc123
+```
+
+## Development
+
+The project uses Task for managing development workflows:
+
+```bash
+# List all available tasks
+task
+
+# Generate templ templates
+task templ
+
+# Run database migrations
+task migrate:up
+
+# Reset database
+task migrate:reset
+
+# Generate Go code from SQL
+task sqlc:generate
+```
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+MIT License - See [LICENSE](LICENSE) file for details

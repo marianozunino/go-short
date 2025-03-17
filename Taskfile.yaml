@@ -1,0 +1,116 @@
+# https://taskfile.dev
+version: '3'
+
+vars:
+  MODULE_NAME: github.com/marianozunino/go-short
+  COVERAGE_FILE: coverage.out
+  DB_PATH: ./db.sqlite
+
+tasks:
+  default:
+    desc: List all available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  build:
+    desc: Build the project
+    cmds:
+      - go build -v -o bin/go-short ./cmd
+    sources:
+      - ./**/*.go
+      - go.mod
+      - go.sum
+    generates:
+      - bin/go-short
+
+  templ:
+    desc: Generate templ templates
+    cmds:
+      - go tool github.com/a-h/templ/cmd/templ generate
+    sources:
+      - ./**/*.templ
+    generates:
+      - ./**/*_templ.go
+
+  templ:watch:
+    desc: Watch and generate templ templates
+    cmds:
+      - go tool github.com/a-h/templ/cmd/templ generate --watch
+
+  test:
+    desc: Run tests
+    cmds:
+      - go tool gotest.tools/gotestsum --format pkgname
+    sources:
+      - ./**/*.go
+
+  migrate:install:
+    desc: Install migrate CLI with SQLite support
+    cmds:
+      - go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
+  migrate:create:
+    desc: Create a new migration
+    cmds:
+      - migrate create -ext sql -dir migrations -seq {{.CLI_ARGS}}
+    requires:
+      vars: [CLI_ARGS]
+
+  migrate:up:
+    desc: Run database migrations
+    deps: [migrate:install]
+    cmds:
+      - migrate -path migrations -database "sqlite3://{{.DB_PATH}}" up
+
+  migrate:down:
+    desc: Revert database migrations
+    deps: [migrate:install]
+    cmds:
+      - migrate -path migrations -database "sqlite3://{{.DB_PATH}}" down
+
+  migrate:force:
+    desc: Force migration version
+    deps: [migrate:install]
+    cmds:
+      - migrate -path migrations -database "sqlite3://{{.DB_PATH}}" force {{.CLI_ARGS}}
+    requires:
+      vars: [CLI_ARGS]
+
+  migrate:reset:
+    desc: Reset database (down + up)
+    deps: [migrate:install]
+    cmds:
+      - migrate -path migrations -database "sqlite3://{{.DB_PATH}}" drop -f
+      - migrate -path migrations -database "sqlite3://{{.DB_PATH}}" up
+
+  dev:
+    desc: Run development server with hot reload
+    deps: [migrate:up, templ]
+    cmds:
+      - "go tool github.com/bokwoon95/wgo -file=.go -file=.templ -xfile=_templ.go go tool github.com/a-h/templ/cmd/templ generate :: go run ./cmd"
+
+  mod:tidy:
+    desc: Tidy up Go modules
+    cmds:
+      - go mod tidy -v
+
+  sqlc:generate:
+    desc: Generate Go code from SQL
+    cmds:
+      - go run github.com/sqlc-dev/sqlc/cmd/sqlc generate
+
+  serve:
+    desc: Run the Echo server
+    deps: [migrate:up, templ]
+    cmds:
+      - go run ./cmd
+
+  setup:
+    desc: Set up the development environment
+    cmds:
+      - task: mod:tidy
+      - task: sqlc:generate
+      - task: templ
+      - task: migrate:up
+      - cp -n .env.example .env || true

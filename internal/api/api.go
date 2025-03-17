@@ -16,19 +16,20 @@ import (
 
 func Run() {
 	e := echo.New()
+	cfg, err := config.LoadConfig()
 
-	db, err := sql.Open("sqlite3", config.DatabasePath.Value())
+	db, err := sql.Open("sqlite3", cfg.DatabasePath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	queries := store.New(db)
-	h := handlers.NewHandlers(queries)
+	h := handlers.NewUrlHandler(queries, *cfg)
 	routes.SetupRoutes(e, h)
 
 	e.Logger.Fatal(
 		e.Start(
-			fmt.Sprintf(":%s", config.Port.Value()),
+			fmt.Sprintf(":%d", cfg.Port),
 		),
 	)
 }

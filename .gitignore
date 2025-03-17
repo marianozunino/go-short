@@ -29,4 +29,5 @@ db.sqlite
 
 # ignore *_templ.go files
 internal/view/*_templ.go
-
+bin
+.task
